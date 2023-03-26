@@ -68,8 +68,8 @@ The provided files contains comprehensive instructions and functions for applyin
 * Test_NO2_Alx.Rdata: contains a test set with Pareto margins added.
 * AngCPD_NO2_mix_Alx.Rdata: contains saved angles and angular masses by decomposition of a prediction IPM estimated in a train set.
 * recentData.Rdata: contains a NO2 dataset for 2016-2020 when four stations are observed and no observation is taken at Alexandria.
-* NewDat.Rdata: contains a data frame from 'NewData.Rdata' with Pareto margins added.
-* AngCPD_NO2_mix_comb.Rdata: contains saved angles and angular masses when the whole NewData.Rdata is used for NO2 mixture.
+* NewDat.Rdata: contains a dataset from 'NewData.Rdata' with Pareto margins added.
+* AngCPD_NO2_mix_comb.Rdata: contains saved angles and angular masses when the NewData.Rdata is used as a whole.
 
 ####  Industry portfolios
 
@@ -77,9 +77,9 @@ The provided files contains comprehensive instructions and functions for applyin
 * negPf_test.Rdata: contains a test set with Pareto margins added.
 * N_train.Rdata: contains a training set with Gaussian margins added.
 * N_test.Rdata: contains a test set with Gaussian margins added.
-* AngCPD_coal.Rdata, AngCPD_paper.Rdata, AngCPD_beer.Rdata: continas saved angles and angular masses by decomposition of a prediction IPM estimated in a training set for the corresponding company.
+* AngCPD_coal.Rdata, AngCPD_paper.Rdata, AngCPD_beer.Rdata: contains saved angles and angular masses by decomposition of a prediction IPM estimated in a training set for the corresponding company.
 
-7_Ang_CPD.R uses completely positive decomposition to obtain a $2 \times q$ nonnegative matrix $B$. The computational time depends on the dimension of $q$ and the number of iterations in a for loop. By default, we choose $q$ to be 9 and set the number of iterations to 5000. This function takes approximately 20-30 minutes to obtain 300-400 angles and angular masses. If users want to skip this function, they can directly use the corresponding Rdata files to reproduce the results.
+7_Ang_CPD.R uses completely positive decomposition to obtain a $2 \times q$ nonnegative matrix $B$. The computational time depends on the dimension of $q$ and the number of iterations in a for loop. By default, we choose $q$ to be 9 and set the number of iterations to 5000. This function takes approximately 2-3 minutes to obtain about 500 angles and angular masses. If users want to skip this function, they can directly use the corresponding Rdata files to reproduce the results.
 
 
 
