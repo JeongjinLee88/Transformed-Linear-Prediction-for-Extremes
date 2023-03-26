@@ -13,15 +13,15 @@ Additionally, we analyze the daily value-averaged returns of 30 US industry port
 To access the air pollution data, users can visit the EPA website and download the daily data at (https://www.epa.gov/outdoor-air-quality-data/download-daily-data). Similarly, the industry portfolio data are publicly available at the Kenneth French Data Library (https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data\_library.html).
 
 ### Description
-The preprocessing of both datasets is described in Section 6 of the manuscript, and the preprocessed data can be found in the 'Data' folder. The simulated data are also available in the 'Data' folder or can be generated using the script file "1_ScriptLinearPred" and its corresponding source code files. The EPA and the Kenneth French Data Library websites provide data dictionaries for both datasets.
+The preprocessing of both datasets is described in Section 6 of the manuscript, and the preprocessed data can be found in the 'Data' folder. The simulated data are also available in the 'Output' folder or can be generated using the script file "1_ScriptLinearPred" and its corresponding source code files. The EPA and the Kenneth French Data Library websites provide data dictionaries for both datasets.
 
 ## Code
 
 ### Abstract
-The provided files offer guidance on how to apply transformed-linear prediction in both simulation studies and real-world applications. By following the script files, users can generate optimized transformed-linear predictions, uncertainty quantification, and assess the coverage rate, etc.
+The provided files offer guidance on how to apply transformed-linear prediction in both simulation studies and applications. By following the script files, users can generate optimized transformed-linear predictions, uncertainty quantification, and assess the coverage rate, etc.
 
 ### Description
-The following files provide instructions and functions for applying transformed-linear prediction in simulation studies, along with reproducing results in Sections 4 and 5 of the manuscript:
+The provided files contains comprehensive instructions and functions for applying transformed-linear prediction in simulation studies and applications, along with reproducing results in Sections 4, 5, and 6 of the manuscript:
 
 ### 1. Script and its source files for simulation studies.
 
