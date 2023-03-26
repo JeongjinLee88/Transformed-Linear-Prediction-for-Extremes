@@ -52,18 +52,32 @@ The following files provide instructions and functions for applying transformed-
 * A4_ScriptPortfolios.R: A script that reproduces the results of the industry portfolios application in subsection 6.2 of the manuscript.
     * Requires the "Hmisc" package to use the 'approxExtrap' function for linear extrapolation.
 
-### Output files
+## Output files
+
 ### Rdata files for simulation study:
+
 * AngCPD_Out_P.Rdata: contains the angles and angular masses obtained by decomposing the estimated prediction IPM using completely positive decomposition.
 * PredIntTop5.Rdata: contains saved 95% prediction intervals for the largest 5% data determined by Xhat.
 
 ### Rdata files for applications:
+
+####  Air pollution
+
 * NewData.Rdata: contains preprocessed NO2 data for five stations.
 * Train_NO2_Alx.Rdata: contains a training set with Pareto margins added.
 * Test_NO2_Alx.Rdata: contains a test set with Pareto margins added.
 * AngCPD_NO2_mix_Alx.Rdata: contains saved angles and angular masses by decomposition of a prediction IPM estimated in a train set.
 * recentData.Rdata: contains a NO2 dataset for 2016-2020 when four stations are observed and no observation is taken at Alexandria.
+* NewDat.Rdata: contains a data frame from 'NewData.Rdata' with Pareto margins added.
 * AngCPD_NO2_mix_comb.Rdata: contains saved angles and angular masses when the whole NewData.Rdata is used for NO2 mixture.
+
+####  Industry portfolios
+
+* negPf_train.Rdata: contains a training set with Pareto margins added.
+* negPf_test.Rdata: contains a test set with Pareto margins added.
+* N_train.Rdata: contains a training set with Gaussian margins added.
+* N_test.Rdata: contains a test set with Gaussian margins added.
+* AngCPD_coal.Rdata, AngCPD_paper.Rdata, AngCPD_beer.Rdata: continas saved angles and angular masses by decomposition of a prediction IPM estimated in a training set for the corresponding company.
 
 7_Ang_CPD.R uses completely positive decomposition to obtain a $2 \times q$ nonnegative matrix $B$. The computational time depends on the dimension of $q$ and the number of iterations in a for loop. By default, we choose $q$ to be 9 and set the number of iterations to 5000. This function takes approximately 20-30 minutes to obtain 300-400 angles and angular masses. If users want to skip this function, they can directly use the corresponding Rdata files to reproduce the results.
 
