@@ -1,4 +1,4 @@
-# Transformed-linear Prediction for Extremes
+# Linear Prediction for Extremes
 
 # Author Contributions Checklist Form
 
