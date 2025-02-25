@@ -1,3 +1,4 @@
+setwd("/home/leej40/Documents/extlinear/code")
 ####  Bind multiple csv files
 library(readr)
 library(dplyr)
@@ -123,7 +124,7 @@ c(dim(Alx_combined)[1],dim(Mc)[1],dim(Rt)[1],dim(TS_combined)[1],dim(Arl)[1])
 dim(NO2_fin)[1] #Total 5163
 
 ####  Standardize NO2 at Alexandria
-source("C:/Linear_prediction/A2_Mov_Avg.R")
+source("A2_Mov_Avg.R")
 ####  Plot of standardized NO2 at Alx
 dev.new()
 par(mar=c(5.1,5.1,2,2))
@@ -145,7 +146,7 @@ Alx_MA=Mov_Avg(Std_Alx, 901, TRUE)
 lines(Alx_MA$MA_mean, col="blue", lwd=3,lty=2)
 lines(Alx_MA$MA_sd, col="red", lwd=2)
 
-save(Std_Alx,file="C:/Linear_prediction/Std_Alx.Rdata")
+save(Std_Alx,file="Std_Alx.Rdata")
 
 ####  Detect any trends
 #library(forecast)
@@ -153,7 +154,7 @@ save(Std_Alx,file="C:/Linear_prediction/Std_Alx.Rdata")
 #library(devtools)
 
 ####  Time series plots
-source("C:/Linear_prediction/A2_Mov_Avg.R")
+source("A2_Mov_Avg.R")
 dev.new()
 par(mar=c(5.1,5.1,2,2))
 par(mfrow=c(1,2))
@@ -325,5 +326,5 @@ NO2_fin$Arl_mean=Arl_MA$MA_mean
 NO2_fin$Arl_sd=Arl_MA$MA_sd
 
 NewData=NO2_fin
-save(NewData,file="C:/Linear_prediction/NewData.Rdata")
-load(file = "C:/Linear_prediction/NewData.Rdata")
+save(NewData,file="NewData.Rdata")
+load(file = "NewData.Rdata")

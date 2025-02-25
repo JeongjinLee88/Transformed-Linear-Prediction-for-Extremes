@@ -1,10 +1,12 @@
 ####  Load data
 library(MASS)
 library(plotrix)
-source("C:/Linear_prediction/2_TransformedOperations.R")
-load(file="C:/Linear_prediction/NewData.Rdata")
+setwd("/home/leej40/Documents/extlinear/output")
+load(file="NewData.Rdata")
 head(NewData)
 dim(NewData)[1]*(2/3) #3442
+setwd("/home/leej40/Documents/extlinear/code")
+source("TransformedOperations.R")
 
 ####  Reorder the data
 dates <- NewData[,1]
@@ -42,7 +44,7 @@ Test_NO2=NewData[3443:5163,]
 library(evd)
 library(ismev)
 library(Hmisc)
-source("C:/Linear_prediction/16_Mix_ECDF_GPD.R")
+source("Mix_ECDF_GPD.R")
 shift=0.9352074
 #mrl.plot(Train_NO2[,10])  #Standardized data at Arl
 #quantile(Train_NO2[,10],probs = 0.95)
@@ -85,94 +87,80 @@ Test_NO2=cbind(Test_NO2,Pa_Test)
 summary(Train_NO2[,21]) #2/(1+shift)
 summary(InvT(x = Train_NO2[,21]))  # zero
 
-save(Train_NO2,file="C:/Linear_prediction/Train_NO2_Alx.Rdata")
-save(Test_NO2,file="C:/Linear_prediction/Test_NO2_Alx.Rdata")
+save(Train_NO2,file="Train_NO2_Alx.Rdata")
+save(Test_NO2,file="Test_NO2_Alx.Rdata")
 
-load(file="C:/Linear_prediction/Train_NO2_Alx.Rdata")
-load(file="C:/Linear_prediction/Test_NO2_Alx.Rdata")
+load(file="Train_NO2_Alx.Rdata")
+load(file="Test_NO2_Alx.Rdata")
 
 ####  Estimate the TPDM
-source("C:/Linear_prediction/6_TPDM_Est.R")
-TPDM_Out=TPDM_Est(Nrow = 5,X_t = Train_NO2[,21:25]) #Take variables on Pareto scales
-TPDM_Out$TPDM_hat
-TPDM_Out$TPDM_P_hat
+source("estimateParams.R")
+Thres_u=0.95
+Est=estimateParams(X = Train_NO2[,21:25], Thres = Thres_u) # Pareto variables
+Est$TPDM_hat
+Est$TPDM_Phat
 
 ####  Vector b minimizing the tail ratio
-TPDM_hat=TPDM_Out$TPDM_hat
-b=solve(TPDM_hat[1:4,1:4])%*%TPDM_hat[1:4,5]
+TPDM_hat=Est$TPDM_hat
+bhat=Est$bhat
 
 ####  The best transformed linear predictor
-Xhat=Amul(t(b),t(Test_NO2[,21:24]))
+Xhat=Amul(t(bhat),t(Test_NO2[,21:24]))
 Xhat=as.vector(Xhat)
 summary(Xhat)
 
 ####  Decompose the TPDM_Pred or the TPDM_Pred_hat
-source("C:/Linear_prediction/7_Ang_CPD.R")
-AngCPD_Out=Ang_CPD(TPDM_P_hat = TPDM_Out$TPDM_P_hat,m = 70)
-
-save(AngCPD_Out,file="C:/Linear_prediction/AngCPD_NO2_mix_Alx.Rdata")
-load(file="C:/Linear_prediction/AngCPD_NO2_mix_Alx.Rdata")
+source("CPfactor.R")
+CP_no2=CPfactor(Mtx = Est$TPDM_Phat,q_star = 10,ite_pereach = 5000,ite_cp = 50)
+save(CP_no2,file="CP_no2.RData")
+load(file="CP_no2.RData")
 
 ####  Check the coverage rate
-source("C:/Linear_prediction/8_JointRegion.R")
-Out1=JointRegion(X_f = Test_NO2[,25],Xhat = Xhat,Ang = AngCPD_Out$All_ang,Ang_mass = AngCPD_Out$All_mass,tol=0.0001,plot = T,ray = FALSE,cone = T,xr1 = 0,xr2 = 40,yr1 = 0,yr2 = 40)
-Out1$Coverage
-#[1] 0.988
+####  Create the 95% joint polar region from a CP-factorization
+library(plotrix)  # 'draw.circle'
+source("jointRegion.R")
+##  Find the 95% joint polar region (Figure 3 (left))
+jointOut=jointRegion(Xhat = Xhat, Xf = Test_NO2[,25],
+                     Angular = CP_no2$angular, Pmass = CP_no2$pmass, Quan = 0.95,
+                     Plot = T, axisLimit = 40, dataPoint = 1)
+jointOut$coverage
+
+##  Find the bandwidth via cross-validation
+seqbw=seq(0.1,0.7,by=0.05) # a seq of bandwidth
+cv_bw=rep(NA,length(seqQuan))
+## coverage rates for each target quantile
+cv_result=sapply(seqbw,function(bw) crossValidate(Dat = rbind(Train_NO2[,21:25],Test_NO2[,21:25]),Ang =CP_no2$angular,
+                                                  pMass = CP_no2$pmass,Thres = Thres_u,
+                                                  kfold = 3,
+                                                  bandW = bw,Quan = 0.95))
+##  Find cv-bandwidths
+cv_bw=seqbw[which.min(abs(cv_result-0.95))]
+
 
 ####  Plot of KDE for angular densities
 library(VGAM)
 library(ks)
-source("C:/Linear_prediction/9_Ang_kde.R")
-kde_cpd_out=Ang_kde(Ang_T = AngCPD_Out$All_ang, Ang_mass = AngCPD_Out$All_mass,bw = T,h = 0.3 ,plot_theta = T, plot_w = T,y_lim = 2)
+source("KDE_w.R")
+kde_out=KDE_w(Ang = CP_no2$angular,Pmass = CP_no2$pmass,bw = T,h = 0.5,Plot=T)
+kde_out
 
-####  Conditional densities
-source("C:/Linear_prediction/10_CondDens.R")
-a=2
-CondDen_Out=CondDens(z = Out1$Mtx_P[a,],h_w2_CPD = kde_cpd_out$kde_trans_w, plot = T)
-##  Inputs: cbind(X_predictant, Xhat), true kde, kde via CPD
-##  Outputs: X_(p+1), conditional density, CDF / X_(p+1), conditional density via CPD, CDF via CPD
+####  Plot an approximate conditional density with the 95% conditional interval
+source("condDensity.R")
+conden_out=condDensity(xhatPoint=Xhat_test[471],xp1Point=Test[471,7],
+                       kde_h = kde_out, Quan = 0.95,
+                       xlim_upper = Xhat_test[471]+0.05, ylim_upper = 100, Plot_h = FALSE)
 
-####  Coverage rate for the conditional density
-source("C:/Linear_prediction/11_CondInterval.R")
-Pred_inter=CondInterval(z2 = CondDen_Out$z2_CPD, X_f_single = Out1$Mtx_P[a,2], cumTraps = CondDen_Out$cumTraps, tol = 0.0001)
+####  Assess the coverage rate
+####  Plot conditional intervals with lines to reproduce Figure 4 (right)
+source("coverageRate.R")
+target_rate=0.95
+XhatXp1 <- cbind(Xhat,Test_NO2[,25])
+Keep <- XhatXp1[,1] > quantile(XhatXp1[,1], target_rate)
+XhatXp1_top <- XhatXp1[Keep,]
+coverOut=coverageRate(XY = XhatXp1_top, kde_est = kde_out, Quan = target_rate,Plot = T)
+coverOut$CoverageRate # 0.965
+dev.off()
 
-####  Check the coverage rate in a 'test' set
-####  Conditional densities for the largest 5% determined by Xhat
-####  Reproduce Figure 5 in air pollution application
-source("C:/Linear_prediction/13_AssessCoverage.R")
-Assess_out=AssessCoverage(Mtx_P = Out1$Mtx_P,h_w2_CPD = kde_cpd_out$kde_trans_w, Thres = 0.95,Thres_Xhat = T)
-#[1] 0.965
-
-####  Check the coverage rate for the largest 5% for which ||X1,X2,X3,X4,Xhat|| is large
-Mtx_obs=cbind(Test_NO2[,21:24],Xhat) #X1,X2,X3,X4,Xhat in a test set
-Rad1 <- sqrt(apply(Mtx_obs^2,1,sum))
-Keep1 <- Rad1 > quantile(Rad1, .95)  
-Mtx_obs[Keep1,]
-
-Rad <- Mtx_obs[,5] #Xhat in a test set
-Keep <- Rad > quantile(Rad, .95)  
-Mtx_obs[Keep,]
-dim(Mtx_obs[Keep1&Keep,]) #66 out of 86
-
-Rad <- Mtx_obs[Keep1,5] #Xhat for which ||X1,X2,X3,X4,Xhat|| is large in a test set
-W <- Test_NO2[Keep1,25]/Rad
-Mtx_P_top=cbind(Mtx_obs[Keep1,5],Test_NO2[Keep1,25])
-AssessCoverage(Mtx_P = Mtx_P_top,h_w2_CPD = kde_cpd_out$kde_trans_w, Thres = 0.95,Thres_Xhat = T)
-#[1] 0.9534
-
-####  Plot all conditional intervals for the top 5% data
-source("C:/Linear_prediction/14_CondIntervalPlot.R")
-Cond_out=CondIntervalPlot(Mtx_P = Out1$Mtx_P,Thres = 0.95,h_w2_CPD = kde_cpd_out$kde_trans_w)
-Cond_mtx=Cond_out$CondIntervalSave # (LB,UB,Xhat,X_f)
-
-####  Plot conditional intervals with lines
-dev.new()
-par(mar=c(5.1,5.1,2,2))
-plot(Cond_mtx[,3],Cond_mtx[,4],xlim=c(0,55),ylim=c(0,55),
-     main="",xlab=expression(paste("Predicted"," ",NO[2]," ","(Pareto Scale)")),ylab=expression(paste("Observed"," ",NO[2]," ","(Pareto Scale)")), cex.main=1.5, cex.lab=1.5, cex.axis=1.5,cex=1.5)
-sl=sort.list(Cond_mtx[,3])
-lines(Cond_mtx[sl,3],Cond_mtx[sl,1], lty = 2, cex=2, lwd=2, col="blue")
-lines(Cond_mtx[sl,3],Cond_mtx[sl,2], lty = 2, cex=2, lwd=2, col="blue")
 
 ################################
 ####  Transform back to original scale
@@ -204,7 +192,9 @@ CDF_c=cbind(sortOrigData[below],sortUData[below])
 #xHold=seq(min(sortOrigData[below]), max(sortOrigData[below]), 0.01)
 #uHold=approx(x = CDF_c[,1],y = CDF_c[,2],xout = xHold)$y
 #uHold=approxExtrap(x = CDF_c[,1],y = CDF_c[,2],xout = xHold)$y
-z=Cond_mtx[,1]
+
+z=coverOut$PI[,1] # lower bound
+
 InvFt_mix <- function(z)
 {
   x <- numeric(length(z))
@@ -245,12 +235,11 @@ InvFt_mix <- function(z)
 }
 
 ####  Choose the top 5%
-Rad <- Out1$Mtx_P[,1] # Xhat in a test set
-W <- Out1$Mtx_P/Rad
+Rad <- jointOut$XY[,1] # Xhat in a test set
+W <- jointOut$XY[,1]/Rad
 Keep <- Rad > quantile(Rad, .95)  
 Test_top5=Test_NO2[Keep,]
-#Train_top5=Train_NO2[Keep,]
-Mtx_P_top=Assess_out$Mtx_P_top
+Mtx_P_top=XhatXp1_top # two columns (Xhat, Xp+1) given large Xhat
 Xhat_o=InvFt_mix(z = Mtx_P_top[,1])*Test_top5[,"Alx_sd"]+Test_top5[,"Alx_mean"]
 X_f_o=InvFt_mix(z = Mtx_P_top[,2])*Test_top5[,"Alx_sd"]+Test_top5[,"Alx_mean"]
 
@@ -261,8 +250,8 @@ Mtx_orig=cbind(Xhat_o,X_f_o)
 summary(Mtx_orig)
 
 ##  Transform the scale of the conditional intervals back to the original scale
-L_orig=InvFt_mix(Cond_mtx[,1])
-U_orig=InvFt_mix(Cond_mtx[,2])
+L_orig=InvFt_mix(coverOut$PI[,1])
+U_orig=InvFt_mix(coverOut$PI[,2])
 
 L_o=L_orig*Test_top5[,"Alx_sd"]+Test_top5[,"Alx_mean"]
 U_o=U_orig*Test_top5[,"Alx_sd"]+Test_top5[,"Alx_mean"]
@@ -277,9 +266,8 @@ summary(U_o)
 ####  All conditional intervals for the top 5% on the original scale
 ####  Reproduce Figure 5
 dev.new()
+pdf("/home/leej40/Documents/extlinear/no2OriginalScale.pdf",6,6)
 par(mar=c(5.1,5.1,2,2))
-#plot(Mtx_orig[,1],Mtx_orig[,2],xlim=c(0,max(Mtx_orig[,2])*1.5),ylim=c(0,max(Mtx_orig[,2])*1.5),
-#     main=expression(paste("The scatter plot of"," ",X[p+1]," ","and"," ",hat(X)[p+1]," ","with conditional intervals")),xlab=expression(hat(X)[p+1]),ylab=expression(X[p+1]), cex.main=1.5, cex.lab=1.5, cex.axis=1.5,pch=20,cex=1)
 plot(Mtx_orig[,1],Mtx_orig[,2],xlim=c(0,max(Mtx_orig[,2])*1.3),ylim=c(0,max(Mtx_orig[,2])*1.3),
      main="",xlab=expression(paste("Predicted"," ",NO[2]," ","(ppb)")),ylab=expression(paste("Observed"," ",NO[2]," ","(ppb)")), cex.main=1.5, cex.lab=1.5, cex.axis=1.5,cex=1.5)
 
@@ -287,6 +275,7 @@ for(a in 1:length(Mtx_orig[,1])){
   points(x = Mtx_orig[a,1],y=L_o[a],pch="-", col="blue",cex=2,lwd=2)
   points(x = Mtx_orig[a,1],y=U_o[a],pch="-", col="blue",cex=2,lwd=2)
 }
+dev.off()
 
 ####  Check the coverage rate with the original scale
 sum(L_o <= Mtx_orig[,2] & Mtx_orig[,2] <= U_o)/length(Mtx_orig[,2])

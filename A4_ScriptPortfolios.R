@@ -1,6 +1,6 @@
 ####  Load portfolios data
-source("C:/Linear_prediction/2_TransformedOperations.R")
-Pf <- read.csv("C:/Portfolios/30_Industry_Portfolios_Daily.csv")
+setwd("/home/leej40/Documents/extlinear/data")
+Pf <- read.csv("30_Industry_Portfolios_Daily.CSV")
 length(Pf[,1]) #24854
 Pf[Pf==-99.99]<-NA
 Pf=na.omit(Pf)
@@ -12,7 +12,7 @@ Pf <- Pf[, -1]
 d <- dim(Pf)[2]
 n <- dim(Pf)[1]  #17911
 
-####  Reorder variables
+####  Reorder variables (last columns: coal, beer, paper)
 NewPf=cbind(Pf$Food,Pf$Smoke,Pf$Games,Pf$Books,Pf$Hshld,Pf$Clths,Pf$Hlth,Pf$Chems,Pf$Txtls
             ,Pf$Cnstr,Pf$Steel,Pf$FabPr,Pf$ElcEq,Pf$Autos,Pf$Carry,Pf$Mines,Pf$Oil,Pf$Util,Pf$Telcm
             ,Pf$Servs,Pf$BusEq,Pf$Trans,Pf$Whlsl,Pf$Rtail,Pf$Meals,Pf$Fin,Pf$Other,Pf$Coal,Pf$Beer,Pf$Paper)
@@ -85,13 +85,13 @@ negPf_test=Pa[11941:17911,]
 N_train=N_dist[1:11940,]
 N_test=N_dist[11941:17911,]
 
-save(negPf_train,file="C:/Linear_prediction/negPf_train.Rdata")
-save(negPf_test,file="C:/Linear_prediction/negPf_test.Rdata")
-save(N_train,file="C:/Linear_prediction/N_train.Rdata")
-save(N_test,file="C:/Linear_prediction/N_test.Rdata")
+save(negPf_train,file="negPf_train.Rdata")
+save(negPf_test,file="negPf_test.Rdata")
+save(N_train,file="N_train.Rdata")
+save(N_test,file="N_test.Rdata")
 
-load(file="C:/Linear_prediction/negPf_train.Rdata")
-load(file="C:/Linear_prediction/negPf_test.Rdata")
+load(file="negPf_train.Rdata")
+load(file="negPf_test.Rdata")
 
 ColName_coal=ColName[c(1:27,29,30,28)]
 ColName_beer=ColName[c(1:28,30,29)]
@@ -148,9 +148,9 @@ LB=Top_n[,1]-1.96*sqrt(MSPE_coal)
 
 Count_n=Top_n[,2]>LB & Top_n[,2]<UB
 sum(Count_n)/length(Count_n)
-#0.676
+#0.7926421
 ##  Beer
-Comb_n=cbind(Xhat_n_beer,N_beer_te[,28])
+Comb_n=cbind(Xhat_n_beer,N_beer_te[,30])
 Q_n=quantile(x = Xhat_n_beer,probs = 0.95)
 Top_n=Comb_n[Comb_n[,1]>Q_n,]
 
@@ -159,9 +159,9 @@ LB=Top_n[,1]-1.96*sqrt(MSPE_beer)
 
 Count_n=Top_n[,2]>LB & Top_n[,2]<UB
 sum(Count_n)/length(Count_n)
-#0.341
+#0.8394649
 ##  Paper
-Comb_n=cbind(Xhat_n_paper,N_paper_te[,28])
+Comb_n=cbind(Xhat_n_paper,N_paper_te[,30])
 Q_n=quantile(x = Xhat_n_paper,probs = 0.95)
 Top_n=Comb_n[Comb_n[,1]>Q_n,]
 
@@ -170,98 +170,124 @@ LB=Top_n[,1]-1.96*sqrt(MSPE_paper)
 
 Count_n=Top_n[,2]>LB & Top_n[,2]<UB
 sum(Count_n)/length(Count_n)
-#0.261
+#0.9230769
 ####  Estimate the TPDM
-source("C:/Linear_prediction/6_TPDM_Est.R")
-TPDM_Out=TPDM_Est(Nrow = dim(Dat_coal_tr)[2],X_t = Dat_coal_tr)
-TPDM_Out=TPDM_Est(Nrow = dim(Dat_coal_tr)[2],X_t = Dat_beer_tr)
-TPDM_Out=TPDM_Est(Nrow = dim(Dat_coal_tr)[2],X_t = Dat_paper_tr)
-TPDM_Out$TPDM_hat
-TPDM_Out$TPDM_P_hat
+source("estimateParams.R")
+Thres_u=0.95
+Est_coal=estimateParams(X = Dat_coal_tr, Thres = Thres_u) # Pareto variables
+Est_beer=estimateParams(X = Dat_beer_tr, Thres = Thres_u) # Pareto variables
+Est_paper=estimateParams(X = Dat_paper_tr, Thres = Thres_u) # Pareto variables
 
 ####  Find the optimized Vector b
-TPDM_hat=TPDM_Out$TPDM_hat
-b=solve(TPDM_hat[1:dim(Dat_coal_tr)[2]-1,1:dim(Dat_coal_tr)[2]-1])%*%TPDM_hat[1:dim(Dat_coal_tr)[2]-1,dim(Dat_coal_tr)[2]]
-which(b==max(b))
+eigen(Est_coal$TPDM_hat)$values
+eigen(Est_beer$TPDM_hat)$values
+eigen(Est_paper$TPDM_hat)$values
 
-b_coal=solve(TPDM_hat[1:dim(Dat_coal_tr)[2]-1,1:dim(Dat_coal_tr)[2]-1])%*%TPDM_hat[1:dim(Dat_coal_tr)[2]-1,dim(Dat_coal_tr)[2]]
-b_beer=solve(TPDM_hat[1:dim(Dat_coal_tr)[2]-1,1:dim(Dat_coal_tr)[2]-1])%*%TPDM_hat[1:dim(Dat_coal_tr)[2]-1,dim(Dat_coal_tr)[2]]
-b_paper=solve(TPDM_hat[1:dim(Dat_coal_tr)[2]-1,1:dim(Dat_coal_tr)[2]-1])%*%TPDM_hat[1:dim(Dat_coal_tr)[2]-1,dim(Dat_coal_tr)[2]]
+b_coal=Est_coal$bhat
+b_beer=Est_beer$bhat
+b_paper=Est_paper$bhat
 
-cbind.data.frame(b_coal,ColName_coal[1:29])
-cbind.data.frame(b_beer,ColName_beer[1:29])
-cbind.data.frame(b_paper,ColName_paper[1:29])
+#cbind.data.frame(b_coal,ColName_coal[1:29])
+#cbind.data.frame(b_beer,ColName_beer[1:29])
+#cbind.data.frame(b_paper,ColName_paper[1:29])
 
 ####  The best linear predictor
-Xhat=Amul(t(b_coal),t(Dat_coal_te[,1:dim(Dat_coal_te)[2]-1]))
-Xhat=as.vector(Xhat)
-Xhat=Amul(t(b_beer),t(Dat_beer_te[,1:dim(Dat_coal_te)[2]-1]))
-Xhat=as.vector(Xhat)
-Xhat=Amul(t(b_paper),t(Dat_paper_te[,1:dim(Dat_coal_te)[2]-1]))
-Xhat=as.vector(Xhat)
-summary(Xhat)
+Xhat_coal=Amul(t(b_coal),t(Dat_coal_te[,1:dim(Dat_coal_te)[2]-1]))
+Xhat_coal=as.vector(Xhat_coal)
+Xhat_beer=Amul(t(b_beer),t(Dat_beer_te[,1:dim(Dat_coal_te)[2]-1]))
+Xhat_beer=as.vector(Xhat_beer)
+Xhat_paper=Amul(t(b_paper),t(Dat_paper_te[,1:dim(Dat_coal_te)[2]-1]))
+Xhat_paper=as.vector(Xhat_paper)
+
 
 ####  Decompose the TPDM_Pred or the TPDM_Pred_hat
 library(MASS)
-source("C:/Linear_prediction/7_Ang_CPD.R")
-TPDM_P_hat=TPDM_Out$TPDM_P_hat
-AngCPD_Out=Ang_CPD(TPDM_P_hat = TPDM_P_hat,m = 80)
+source("CPfactor.R")
+CP_coal=CPfactor(Mtx = Est_coal$TPDM_Phat,q_star = 10,ite_pereach = 5000,ite_cp = 50)
+CP_beer=CPfactor(Mtx = Est_beer$TPDM_Phat,q_star = 10,ite_pereach = 5000,ite_cp = 50)
+CP_paper=CPfactor(Mtx = Est_paper$TPDM_Phat,q_star = 10,ite_pereach = 5000,ite_cp = 50)
+save(CP_coal,file="CP_coal.RData")
+save(CP_beer,file="CP_beer.RData")
+save(CP_paper,file="CP_paper.RData")
+load(file="CP_coal.Rdata")
+load(file="CP_beer.Rdata")
+load(file="CP_paper.Rdata")
 
-save(AngCPD_Out,file="C:/Linear_prediction/AngCPD_coal.Rdata")
-save(AngCPD_Out,file="C:/Linear_prediction/AngCPD_beer.Rdata")
-save(AngCPD_Out,file="C:/Linear_prediction/AngCPD_paper.Rdata")
-load(file="C:/Linear_prediction/AngCPD_coal.Rdata")
-load(file="C:/Linear_prediction/AngCPD_beer.Rdata")
-load(file="C:/Linear_prediction/AngCPD_paper.Rdata")
-
-####  Rescale transformed data
-library(Hmisc)
 ####  Check the coverage rate
-library(plotrix)
-source("C:/Linear_prediction/8_JointRegion.R")
-Out1=JointRegion(X_f = Dat_coal_te[,dim(Dat_coal_tr)[2]],Xhat = Xhat,Ang = AngCPD_Out$All_ang,Ang_mass = AngCPD_Out$All_mass,tol=0.001,plot = T,ray = FALSE,cone = T,xr1 = 0,xr2 = max(Xhat)*1.1,yr1 = 0,yr2 = max(Xhat)*1.1)
-Out1=JointRegion(X_f = Dat_beer_te[,dim(Dat_coal_tr)[2]],Xhat = Xhat,Ang = AngCPD_Out$All_ang,Ang_mass = AngCPD_Out$All_mass,tol=0.001,plot = T,ray = FALSE,cone = T,xr1 = 0,xr2 = max(Xhat)*1.1,yr1 = 0,yr2 = max(Xhat)*1.1)
-Out1=JointRegion(X_f = Dat_paper_te[,dim(Dat_coal_tr)[2]],Xhat = Xhat,Ang = AngCPD_Out$All_ang,Ang_mass = AngCPD_Out$All_mass,tol=0.001,plot = T,ray = FALSE,cone = T,xr1 = 0,xr2 = max(Xhat)*1.1,yr1 = 0,yr2 = max(Xhat)*1.1)
-Out1$Coverage
-#0.943
-#0.883
-#0.943
+####  Create the 95% joint polar region from a CP-factorization
+library(plotrix)  # 'draw.circle'
+source("jointRegion.R")
+##  Find the 95% joint polar region
+jointOut_coal=jointRegion(Xhat = Xhat_coal, Xf = Dat_coal_te[,30],
+                     Angular = CP_coal$angular, Pmass = CP_coal$pmass, Quan = 0.95,
+                     Plot = T, axisLimit = 40, dataPoint = 1)
+jointOut_coal$coverage
+
+jointOut_beer=jointRegion(Xhat = Xhat_beer, Xf = Dat_beer_te[,30],
+                     Angular = CP_beer$angular, Pmass = CP_beer$pmass, Quan = 0.95,
+                     Plot = T, axisLimit = 40, dataPoint = 1)
+jointOut_beer$coverage
+
+jointOut_paper=jointRegion(Xhat = Xhat_paper, Xf = Dat_paper_te[,30],
+                     Angular = CP_paper$angular, Pmass = CP_paper$pmass, Quan = 0.95,
+                     Plot = T, axisLimit = 40, dataPoint = 1)
+jointOut_paper$coverage
+
+##  Find the bandwidth via cross-validation
+seqbw=seq(0.1,0.7,by=0.05) # a seq of bandwidth
+cv_bw=rep(NA,length(seqQuan))
+## coverage rates for the target quantile
+cv_result=sapply(seqbw,function(bw) crossValidate(Dat = Dat_coal_te[,-30],Ang =CP_coal$angular,
+                                                  pMass = CP_coal$pmass,Thres = Thres_u,
+                                                  kfold = 3,
+                                                  bandW = bw,Quan = 0.95))
+cv_coal=seqbw[which.min(abs(cv_result-0.95))]
+
+cv_result=sapply(seqbw,function(bw) crossValidate(Dat = Dat_beer_te[,-30],Ang =CP_beer$angular,
+                                                  pMass = CP_beer$pmass,Thres = Thres_u,
+                                                  kfold = 3,
+                                                  bandW = bw,Quan = 0.95))
+cv_beer=seqbw[which.min(abs(cv_result-0.95))]
+
+cv_paper=sapply(seqbw,function(bw) crossValidate(Dat = Dat_paper_te[,-30],Ang =CP_paper$angular,
+                                                  pMass = CP_paper$pmass,Thres = Thres_u,
+                                                  kfold = 3,
+                                                  bandW = bw,Quan = 0.95))
+cv_paper=seqbw[which.min(abs(cv_result-0.95))]
 
 ####  Plot of KDE for angular densities
 library(VGAM)
 library(ks)
-source("C:/Linear_prediction/9_Ang_kde.R")
-kde_cpd_out=Ang_kde(Ang = AngCPD_Out$All_ang, Ang_mass = AngCPD_Out$All_mass,bw = T,h = 0.3 ,plot_theta = T, plot_w = T,y_lim = 2)
+source("KDE_w.R")
+kde_out_coal=KDE_w(Ang = CP_coal$angular,Pmass = CP_coal$pmass,bw = T,h = cv_bw, Plot=T)
+kde_out_beer=KDE_w(Ang = CP_beer$angular,Pmass = CP_beer$pmass,bw = T,h = cv_bw, Plot=T)
+kde_out_paper=KDE_w(Ang = CP_paper$angular,Pmass = CP_paper$pmass,bw = T,h = cv_bw, Plot=T)
 
-####  Find the conditional interval
-source("C:/Linear_prediction/10_CondDens.R")
-a=2
-CondDen_Out=CondDens(z = Out1$Mtx_P[a,],h_w2_CPD = kde_cpd_out$kde_trans_w, plot = T)
-##  Inputs: cbind(X_predictant, Xhat), true kde, kde via CPD
-##  Outputs: X_(p+1), conditional density, CDF / X_(p+1), conditional density via CPD, CDF via CPD
-
-####  Find the prediction interval
-source("C:/Linear_prediction/11_CondInterval.R")
-Pred_inter=CondInterval(z2 = CondDen_Out$z2_CPD,X_f_single = Out1$Mtx_P[a,2],cumTraps = CondDen_Out$cumTraps,tol = 0.001)
+kde_out_coal=KDE_w(Ang = CP_coal$angular,Pmass = CP_coal$pmass, Plot=T)
+kde_out_beer=KDE_w(Ang = CP_beer$angular,Pmass = CP_beer$pmass, Plot=T)
+kde_out_paper=KDE_w(Ang = CP_paper$angular,Pmass = CP_paper$pmass,Plot=T)
 
 ####  Assess the coverage rate
-source("C:/Linear_prediction/13_AssessCoverage.R")
-AssessCoverage(Mtx_P = Out1$Mtx_P,h_w2_CPD = kde_cpd_out$kde_trans_w,Thres = 0.95,Thres_Xhat = T)
-#Test_set[,1]
-#W <- Test_set/Rad
-#Keep <- Rad > quantile(Rad, .95)  
-#Keep[Keep==TRUE]
-#W_top <- W[Keep,]
-#Mtx_P_top=Test_set[Keep,]
+####  Plot conditional intervals with lines
+source("coverageRate.R")
+target_rate=0.95
+XhatXp1 <- cbind(Xhat_coal,Dat_coal_te[,30])
+Keep <- XhatXp1[,1] > quantile(XhatXp1[,1], target_rate)
+XhatXp1_top <- XhatXp1[Keep,]
+coverOut=coverageRate(XY = XhatXp1_top, kde_est = kde_out_coal, Quan = target_rate,Plot = T)
+coverOut$CoverageRate # 0.9531773
 
-#0.979 (coverage rate (coal))
-#0.963
-#0.980
+XhatXp1 <- cbind(Xhat_beer,Dat_beer_te[,30])
+Keep <- XhatXp1[,1] > quantile(XhatXp1[,1], target_rate)
+XhatXp1_top <- XhatXp1[Keep,]
+coverOut=coverageRate(XY = XhatXp1_top, kde_est = kde_out_beer, Quan = target_rate,Plot = T)
+coverOut$CoverageRate # 0.9531773
 
-####  All conditional intervals for the top 5%
-source("C:/Linear_prediction/14_CondIntervalPlot.R")
-Cond_Out=CondIntervalPlot(Mtx_P = Out1$Mtx_P,Thres = 0.95,h_w2_CPD = kde_cpd_out$kde_trans_w)
-Cond_mtx=Cond_Out$CondIntervalSave
+XhatXp1 <- cbind(Xhat_paper,Dat_paper_te[,30])
+Keep <- XhatXp1[,1] > quantile(XhatXp1[,1], target_rate)
+XhatXp1_top <- XhatXp1[Keep,]
+coverOut=coverageRate(XY = XhatXp1_top, kde_est = kde_out_paper, Quan = target_rate,Plot = T)
+coverOut$CoverageRate # 0.9331104
 
 ####  Transform back to original scales
 ####  Coal
