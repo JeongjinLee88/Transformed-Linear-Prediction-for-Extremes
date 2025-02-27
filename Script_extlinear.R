@@ -1,4 +1,4 @@
-##  Set the proper directory
+##  Set your working directory
 #setwd("")
 setwd("/home/leej40/Documents/extlinear/code")
 ##  Define transformed operations
@@ -27,15 +27,9 @@ n_train=ceiling(n*(2/3))
 Train=Out$Xp[1:n_train,]
 Test=Out$Xp[-(1:n_train),]
 
-##  Plot of the approximate true angular measure
-#pmass_Apred=apply(Out$A_Pred^2,2,sum)
-#angular_Apred=Out$A_Pred[1,]/sqrt(apply(Out$A_Pred^2,2,sum))
-#dev.new()
-#plot(angular_Apred,pmass_Apred)
-
 ##  Estimate the TPDM, TPDM_pred, and b.
 source("estimateParams.R")
-Thres_u=0.75 # tried 0.9 and 0.95
+Thres_u=0.75  # tried 0.9, 0.95, 0.98
 Est=estimateParams(X = Train, Thres = Thres_u)
 Est$TPDM_hat
 Out$TPDM_X # true TPDM
@@ -48,7 +42,6 @@ library(Matrix) #nearPD
 library(MASS) #ginv
 source("CPfactor.R")
 CPout=CPfactor(Mtx = Est$TPDM_Phat,q_star = 10,ite_pereach = 5000,ite_cp = 100)
-#CPout=CPfactor(Mtx = Out$TPDM_Pred,q_star = 10,ite_pereach = 5000,ite_cp = 100)
 plot(CPout$angular,CPout$pmass)
 
 ##  Save output from TPDM_Phat
@@ -62,7 +55,7 @@ source("jointRegion.R")
 Xhat_test=Amul(t(Est$bhat),t(Test[,-Nrow]))
 Xhat_test=as.vector(Xhat_test)
 ##  Find the 95% joint polar region in Figure 2 (left)
-target_rate=0.94
+target_rate=0.95
 jointOut=jointRegion(Xhat = Xhat_test, Xf = Test[,Nrow],
                      Angular = CPout$angular, Pmass = CPout$pmass, Quan = target_rate,
                      Plot = T, axisLimit = 80, dataPoint = 471)
@@ -71,7 +64,7 @@ jointOut$coverage
 
 ##  Find the bandwidth via cross-validation for the target rate of 0.95
 source("crossValidate.R")
-target_rate=0.94
+target_rate=0.95
 #Thres_u=0.75
 seqbw=seq(0.1,0.7,by=0.05) # a seq of bandwidth
 cv_result=sapply(seqbw,function(bw) crossValidate(Dat = Out$Xp,Ang =CPout$angular,
@@ -104,7 +97,7 @@ conden_out=condDensity(xhatPoint=Xhat_test[471],xp1Point=Test[471,Nrow],
 ##  Plot conditional intervals using the cross-validated bandwidth
 ##  To reproduce Figure 2 (right)
 source("coverageRate.R")
-target_rate=0.94
+target_rate=0.95
 XhatXp1 <- cbind(Xhat_test,Test[,Nrow])
 Keep <- XhatXp1[,1] > quantile(XhatXp1[,1], target_rate)
 XhatXp1_top <- XhatXp1[Keep,]
