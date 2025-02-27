@@ -69,7 +69,7 @@ CPfactor <- function(Mtx, q_star=9, ite_pereach=5000, ite_cp=80){
           converged <- TRUE
           break
         }
-        #print(i)
+        print(i)
       }
     }
     BQ_save[,,j]=BQ
