@@ -1,4 +1,5 @@
-setwd("/home/leej40/Documents/extlinear/output")
+#setwd("")
+#setwd("/home/leej40/Documents/extlinear/output")
 ####  Load data
 library(MASS)
 library(plotrix)
@@ -8,7 +9,7 @@ load(file="NewData.Rdata")
 load(file="recentData.RData")  
 # Mc, Rt, Ts, Arl / no Alx
 # 06/07/2016 - 12/31/2020
-setwd("/home/leej40/Documents/extlinear/code")
+#setwd("/home/leej40/Documents/extlinear/code")
 source("TransformedOperations.R")
 
 ####  Reorder the data

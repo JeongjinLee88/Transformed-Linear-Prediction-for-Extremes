@@ -1,11 +1,13 @@
+#setwd("")
+
 ####  Load data
 library(MASS)
 library(plotrix)
-setwd("/home/leej40/Documents/extlinear/output")
+#setwd("/home/leej40/Documents/extlinear/output")
 load(file="NewData.Rdata")
 head(NewData)
 dim(NewData)[1]*(2/3) #3442
-setwd("/home/leej40/Documents/extlinear/code")
+#setwd("/home/leej40/Documents/extlinear/code")
 source("TransformedOperations.R")
 
 ####  Reorder the data

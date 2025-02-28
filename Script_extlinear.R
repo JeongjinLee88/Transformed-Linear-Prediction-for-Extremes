@@ -1,6 +1,7 @@
 ##  Set your working directory
 #setwd("")
-setwd("/home/leej40/Documents/extlinear/code")
+#setwd("/home/leej40/Documents/extlinear/code")
+
 ##  Define transformed operations
 source("TransformedOperations.R")
 

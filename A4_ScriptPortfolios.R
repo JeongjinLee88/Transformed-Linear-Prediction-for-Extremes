@@ -1,5 +1,7 @@
+#setwd("")
+
 ####  Load portfolios data
-setwd("/home/leej40/Documents/extlinear/data")
+#setwd("/home/leej40/Documents/extlinear/data")
 Pf <- read.csv("30_Industry_Portfolios_Daily.CSV")
 length(Pf[,1]) #24854
 Pf[Pf==-99.99]<-NA

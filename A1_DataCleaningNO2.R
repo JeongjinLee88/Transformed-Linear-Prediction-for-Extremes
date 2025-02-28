@@ -1,4 +1,6 @@
-setwd("/home/leej40/Documents/extlinear/code")
+#setwd("")
+#setwd("/home/leej40/Documents/extlinear/code")
+
 ####  Bind multiple csv files
 library(readr)
 library(dplyr)
