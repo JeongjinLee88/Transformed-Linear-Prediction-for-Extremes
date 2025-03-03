@@ -52,7 +52,7 @@ The provided files contain comprehensive instructions and functions for applying
 
 ### Rdata files for simulation study:
 
-* CPour.RData: contains angular components and angular point masses obtained from the completely positive decomposition of the estimated prediction TPDM.
+* CPout.RData: contains angular components and angular point masses obtained from the completely positive decomposition of the estimated prediction TPDM.
 
 ### Rdata files for applications:
 
