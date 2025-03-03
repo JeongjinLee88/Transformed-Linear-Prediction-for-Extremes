@@ -70,7 +70,7 @@ The provided files contain comprehensive instructions and functions for applying
 * negPf_test.Rdata: contains a test set with Pareto margins added.
 * N_train.Rdata: contains a training set with Gaussian margins added.
 * N_test.Rdata: contains a test set with Gaussian margins added.
-* AngCPD_coal.Rdata, AngCPD_paper.Rdata, AngCPD_beer.Rdata: contains saved angles and angular masses obtained from the decomposition of the prediction TPDM estimate in a training set for each sector.
+* CP_coal.Rdata, CP_paper.Rdata, CP_beer.Rdata: contains saved angles and angular masses obtained from the decomposition of the prediction TPDM estimate in a training set for each sector.
 
 CPfactor.R implements completely positive decomposition to obtain multiple $2 \times q$ nonnegative matrices $C^{(0)}$. The computational time depends on the dimension of q* and the number of iterations in a for loop. By default, we choose q* to be 10 and set the number of iterations to 5000 until the algorithm converges. This function takes approximately 2-3 minutes to obtain about 500 angles and angular masses. If users want to skip this function, you can directly use the corresponding Rdata files to reproduce the results.
 
